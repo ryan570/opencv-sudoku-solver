@@ -63,4 +63,4 @@ model.fit(train_generator, steps_per_epoch=steps_per_epoch, epochs=epochs,
 # print("loss-> ", val_loss, "\nacc-> ", val_acc)
 
 # path = os.path.dirname(os.path.dirname(__file__))
-model.save('new.model')
+model.save('new2.model')

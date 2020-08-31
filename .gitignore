@@ -1,0 +1,8 @@
+__pycache__/
+.vscode/
+data/
+logs/
+new.model/
+old_no_zeros.model/
+venv/
+puzzles/

@@ -43,7 +43,6 @@ def pad(img, requiredW=32, requiredH=32):
 def find_digit(img, minimum=200, maximum=1000):
     """Attempt to find a digit inside image and return the image cropped to the digit"""
     found = False
-    # gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     kernel_size = 3
     blur_gray = cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
 
@@ -64,9 +63,7 @@ def find_digit(img, minimum=200, maximum=1000):
         area = w * h
 
         if area > minimum and area < maximum:
-            # print(area)
             found = True
-            # cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 0), 2)
             img = img[y:y+h, x:x+w]
 
     return found, img

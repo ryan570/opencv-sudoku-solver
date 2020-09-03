@@ -24,6 +24,7 @@ class Solver:
         self.solved = False
         self.to_display = []
         self.in_frame = False
+        self.frames_since_seen = 0
 
     def run(self):
         cap = cv2.VideoCapture(self.source)
@@ -56,24 +57,31 @@ class Solver:
                         self.in_frame = True
                         break
 
-                    if self.in_frame:
-                        if threading.active_count() < 2 and not self.solved:
-                            threading.Thread(target=self.read_and_solve, args=(frame, polygon)).start()
+                cv2.putText(frame, str(self.frames_since_seen), (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 2)
+                if self.in_frame:
+                    self.frames_since_seen = self.frames_since_seen - 1 if self.frames_since_seen > 0 else 0  
+                    if threading.active_count() < 2 and not self.solved:
+                        threading.Thread(target=self.read_and_solve, args=(frame, polygon)).start()
 
-                        if self.solved:
-                            if len(self.to_display) == 0:
-                                blank = np.zeros((*frame.shape[:2][::-1], 4), dtype=np.uint8)
-                                for (x, y), num in np.ndenumerate(self.solution):
-                                    cv2.putText(blank, str(int(num)), ((y)*STEP + 12,
-                                                                    (1+x) * STEP - 10), cv2.FONT_HERSHEY_PLAIN, 3, (255, 255, 255, 255), 3)
-                                self.to_display = blank
-                          
-                            overlay = warp(self.to_display, ((0, 0), (WARPED_SIZE, 0), (WARPED_SIZE, WARPED_SIZE), (
-                                0, WARPED_SIZE)), polygon, (frame.shape[1], frame.shape[0]))
-                            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2RGBA)
-                            frame = cv2.add(frame, overlay)
-                    else:
-                        pass
+                    if self.solved:
+                        if len(self.to_display) == 0:
+                            blank = np.zeros((*frame.shape[:2][::-1], 4), dtype=np.uint8)
+                            for (x, y), num in np.ndenumerate(self.solution):
+                                cv2.putText(blank, str(int(num)), ((y)*STEP + 12,
+                                                                (1+x) * STEP - 10), cv2.FONT_HERSHEY_PLAIN, 3, (255, 255, 255, 255), 3)
+                            self.to_display = blank
+                        
+                        overlay = warp(self.to_display, ((0, 0), (WARPED_SIZE, 0), (WARPED_SIZE, WARPED_SIZE), (
+                            0, WARPED_SIZE)), polygon, (frame.shape[1], frame.shape[0]))
+                        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2RGBA)
+                        frame = cv2.add(frame, overlay)
+                else:
+                    self.frames_since_seen += 1
+
+                    if self.frames_since_seen > 5:
+                        self.frames_since_seen = 5
+                        self.to_display = []
+                        self.solved = False
 
                 frame = cv2.resize(frame, (500, 700))
                 cv2.imshow('frame', frame)

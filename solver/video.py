@@ -1,5 +1,6 @@
 import threading
 import time
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -25,11 +26,12 @@ class Solver:
         self.to_display = []
         self.in_frame = False
         self.frames_since_seen = 0
+        self.freeze_solution = False
 
     def run(self):
         cap = cv2.VideoCapture(self.source)
-        empty_grid = cv2.imread('grid.png')
-
+        empty_grid = None
+    
         if (cap.isOpened() == False):
             print("Error opening video stream or file")
 
@@ -86,9 +88,20 @@ class Solver:
                 frame = cv2.resize(frame, (500, 700))
                 cv2.imshow('frame', frame)
 
+                if self.freeze_solution:
+                    cv2.imshow('solution', empty_grid)
+
                 key = cv2.waitKey(1)
                 if key & 0xFF == ord('q'):
                     break
+                elif key & 0xFF == ord('f'):
+                    if self.solved:
+                        empty_grid = cv2.imread(str(Path(__file__).parents[1].resolve() / 'grid.png'))
+                        for (x, y), num in np.ndenumerate(self.solution):
+                            cv2.putText(empty_grid, str(int(num)), ((y)*STEP + 12,
+                                                            (1+x) * STEP - 10), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 0), 3)
+                        self.freeze_solution = True
+                    
 
                 # print("FPS: ", 1.0 / (time.time() - start_time))
 
@@ -96,7 +109,6 @@ class Solver:
                 break
 
     def read_and_solve(self, frame, polygon):
-        print("called")
         warped = warp(frame, polygon, ((0, 0), (WARPED_SIZE, 0), (WARPED_SIZE,
                                                                   WARPED_SIZE), (0, WARPED_SIZE)), (WARPED_SIZE, WARPED_SIZE))
         no_grid = remove_grid(warped)
@@ -120,7 +132,6 @@ class Solver:
 
             self.solution = solution
             self.solved = True
-            print("solved")
         except:
             pass
 

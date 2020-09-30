@@ -14,7 +14,7 @@ def area(cnt):
     return w * h
 
 
-def run(img):
+def run(img, data_gen=False):
     processed = preprocess(img)
 
     contours, hierarchy = cv2.findContours(
@@ -66,5 +66,8 @@ def run(img):
         img = cv2.cvtColor(img, cv2.COLOR_RGB2RGBA)
         img = cv2.add(img, overlay)
 
+        cv2.imshow("process", processed)
+        cv2.imshow("warp", warped)
+        cv2.imshow("no grid", no_grid)
         cv2.imshow("solved", img)
         cv2.waitKey(0)
